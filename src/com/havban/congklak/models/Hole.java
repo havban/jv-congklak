@@ -13,4 +13,8 @@ public interface Hole {
 
     void addSeed(int newSeeds);
 
+    boolean isKacang();
+
+    void setKacang(boolean status);
+
 }

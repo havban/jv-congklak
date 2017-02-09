@@ -25,7 +25,23 @@ public class DefaultPlayer implements Player {
         return id;
     }
 
+    @Override
     public String toString(){
         return "Player "+id+" - "+name;
+    }
+
+    @Override
+    public boolean equals(Object o){
+
+        if (this == o)
+            return true;
+        if (o == null)
+            return false;
+        if (getClass() != o.getClass())
+            return false;
+        Player p = (Player) o;
+        if (id != p.getId())
+            return false;
+        return true;
     }
 }

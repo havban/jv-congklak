@@ -10,9 +10,12 @@ public class DefaultHole implements Hole {
     private int seeds;
     private int boardSize;
 
+    private boolean isKacang;
+
     public DefaultHole(int seeds, int boardSize){
         this.seeds = seeds;
         this.boardSize = boardSize;
+        this.isKacang = false;
     }
 
     @Override
@@ -40,5 +43,13 @@ public class DefaultHole implements Hole {
 
     public String toString(){
         return ""+seeds;
+    }
+
+    public void setKacang(boolean status){
+        isKacang = status;
+    }
+
+    public boolean isKacang(){
+        return isKacang;
     }
 }

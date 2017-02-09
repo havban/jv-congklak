@@ -7,6 +7,7 @@ import com.havban.congklak.models.Position;
 import com.havban.congklak.models.impl.DefaultBoard;
 import com.havban.congklak.models.impl.DefaultPlayer;
 
+import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -14,6 +15,11 @@ import java.util.Scanner;
  */
 public class Game implements Runnable{
 
+    private static String ENV_BOARD_SIZE = "CONGKLAK_BOARD_SIZE";
+    private static String ENV_SEED_PER_HOLE = "CONGKLAK_SEED_PER_HOLE";
+
+    private static int DEFAULT_BOARD_SIZE = 7;
+    private static int DEFAULT_SEED_PER_HOLE = 7;
 
     private boolean isRunning = true;
     private Scanner scanner;
@@ -24,7 +30,44 @@ public class Game implements Runnable{
     private static final int P2_SEQ = 2;
     private Player p1, p2;
 
+    public Game(int boardSize, int seedPerHole){
+        init(boardSize, seedPerHole);
+    }
+
     public Game(){
+
+        int boardSize = DEFAULT_BOARD_SIZE;
+        int seedPerHole = DEFAULT_SEED_PER_HOLE;
+
+        try {
+
+            Map<String, String> env = System.getenv();
+
+            if(env.containsKey(ENV_BOARD_SIZE)){
+                try {
+                    boardSize = Integer.parseInt(env.get(ENV_BOARD_SIZE));
+                } catch (NumberFormatException e){
+                    throw new Exception("Please check your \""+ENV_BOARD_SIZE+"\" env variable for valid integer");
+                }
+            }
+            if(env.containsKey(ENV_SEED_PER_HOLE)){
+                try {
+                    seedPerHole = Integer.parseInt(env.get(ENV_SEED_PER_HOLE));
+                } catch (NumberFormatException e){
+                    throw new Exception("Please check your \""+ENV_SEED_PER_HOLE+"\" env variable for valid integer");
+                }
+            }
+
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            System.exit(-1);
+        }
+
+        init(boardSize, seedPerHole);
+
+    }
+
+    private void init(int boardSize, int seedPerHole){
 
         scanner = new Scanner(System.in);
 
@@ -41,12 +84,7 @@ public class Game implements Runnable{
         p1 = new DefaultPlayer(P1_SEQ, player1Name);
         p2 = new DefaultPlayer(P2_SEQ, player2Name);
 
-        try {
-            board = new DefaultBoard(p1, p2);
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            System.exit(-1);
-        }
+        board = new DefaultBoard(boardSize, seedPerHole, p1, p2);
 
     }
 

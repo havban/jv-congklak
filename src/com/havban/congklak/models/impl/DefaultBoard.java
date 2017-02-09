@@ -17,34 +17,10 @@ public class DefaultBoard implements Board {
 
     private Map<Position, Hole> holes = new HashMap<>();
 
-    private static String ENV_BOARD_SIZE = "CONGKLAK_BOARD_SIZE";
-    private static String ENV_SEED_PER_HOLE = "CONGKLAK_SEED_PER_HOLE";
-
-    private static int DEFAULT_BOARD_SIZE = 7;
-    private static int DEFAULT_SEED_PER_HOLE = 7;
-
-    public DefaultBoard(Player p1, Player p2) throws Exception {
+    public DefaultBoard(int boardSize, int seedPerHole, Player p1, Player p2) {
         players[0] = p1;
         players[1] = p2;
 
-        Map<String, String> env = System.getenv();
-        int boardSize = DEFAULT_BOARD_SIZE;
-        int seedPerHole = DEFAULT_SEED_PER_HOLE;
-
-        if(env.containsKey(ENV_BOARD_SIZE)){
-            try {
-                boardSize = Integer.parseInt(env.get(ENV_BOARD_SIZE));
-            } catch (NumberFormatException e){
-                throw new Exception("Please check your \""+ENV_BOARD_SIZE+"\" env variable for valid integer");
-            }
-        }
-        if(env.containsKey(ENV_SEED_PER_HOLE)){
-            try {
-                seedPerHole = Integer.parseInt(env.get(ENV_SEED_PER_HOLE));
-            } catch (NumberFormatException e){
-                throw new Exception("Please check your \""+ENV_SEED_PER_HOLE+"\" env variable for valid integer");
-            }
-        }
         size = boardSize;
         //init holes
         for(int i=0; i< size; i++){
@@ -110,8 +86,8 @@ public class DefaultBoard implements Board {
 
         Player p = pos.getPlayer();
 
-        p = p.getId() == players[0].getId()? players[1]:
-                p.getId() == players[1].getId()? players[0]: null;
+        p = p.equals(players[0])? players[1]:
+                p.equals(players[1])? players[0]: null;
 
         return getHole(p, size-pos.getSeq()-1);
     }
@@ -138,15 +114,15 @@ public class DefaultBoard implements Board {
         int nextSeq = pos.getSeq()+1;
 
         //skipping opponent hole
-        if(nextSeq == size && p.getId()!=cp.getId()){
+        if(nextSeq == size && !p.equals(cp)){
             nextSeq = 0;
             p = cp;
         }
 
         if(nextSeq > size) {
             //switch user
-            p = p.getId() == players[0].getId() ? players[1] :
-                    p.getId() == players[1].getId() ? players[0] : null;
+            p = p.equals(players[0]) ? players[1] :
+                    p.equals(players[1]) ? players[0] : null;
             //go to first
             nextSeq = 0;
         }
@@ -171,7 +147,7 @@ public class DefaultBoard implements Board {
             }
             else if(getHole(pos).getNumberOfSeed()>1)
                 walk(cp, pos);
-            else if(cp.getId() == pos.getPlayer().getId()){
+            else if(cp.equals(pos.getPlayer())){
                 //grab opponent seeds (across)
                 Hole h1 = getHoleAcross(pos);
                 if(h1!=null && h1.getNumberOfSeed()>0) {
