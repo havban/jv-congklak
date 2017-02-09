@@ -11,12 +11,5 @@ public class Main {
 
         new Thread(game).start();
 
-        System.out.println("sleeping..");
-        Thread.sleep(10000);
-
-
-        System.out.println("exiting..");
-
-        game.exit();
     }
 }
