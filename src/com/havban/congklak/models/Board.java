@@ -27,4 +27,12 @@ public interface Board {
     Position getNextPosition(Player cp, Position pos);
 
     Hole getNextHole(Player cp, Position pos);
+
+    Position getLastPosition();
+
+    void wrapRound();
+
+    int getStoreSeedCount(Player p);
+
+    void startNextRound();
 }

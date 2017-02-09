@@ -4,8 +4,11 @@ import com.havban.congklak.models.Board;
 import com.havban.congklak.models.Hole;
 import com.havban.congklak.models.Player;
 import com.havban.congklak.models.Position;
+import javafx.geometry.Pos;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -13,15 +16,23 @@ import java.util.Map;
  */
 public class DefaultBoard implements Board {
     private int size;
+    private int seedPerHole;
     private Player[] players= new Player[2];
 
     private Map<Position, Hole> holes = new HashMap<>();
+
+    // player has cross to opponent hole
+    private boolean hasCrossed = false;
+
+    //get last position
+    private Position lastPosition = null;
 
     public DefaultBoard(int boardSize, int seedPerHole, Player p1, Player p2) {
         players[0] = p1;
         players[1] = p2;
 
         size = boardSize;
+        this.seedPerHole = seedPerHole;
         //init holes
         for(int i=0; i< size; i++){
             holes.put(new Position(p1, i), new DefaultHole(seedPerHole, boardSize));
@@ -101,6 +112,9 @@ public class DefaultBoard implements Board {
                 || start > size-1)
             return;
 
+        if(!cp.equals(p.getPlayer()))
+            hasCrossed = true;
+
         int seeds = h.takeAllSeed();
         step(cp, getNextPosition(cp, p), seeds);
     }
@@ -127,8 +141,18 @@ public class DefaultBoard implements Board {
             nextSeq = 0;
         }
 
+        Position nextPos = new Position(p, nextSeq);
 
-        return new Position(p, nextSeq);
+        //if it is kacang, and not mine, then get next
+        if(!p.equals(cp) && getHole(p, nextSeq).isKacang()) {
+            if (nextSeq == size - 1) {
+                System.out.println("All holes are 'Kacang'.. exiting");
+                System.exit(0);
+            }
+            return getNextPosition(cp, nextPos);
+        }
+
+        return nextPos;
     }
 
     public void step(Player cp, Position pos, int seeds){
@@ -143,19 +167,27 @@ public class DefaultBoard implements Board {
 
         if (seeds < 2) {
             if(pos.getSeq() == size){
+                lastPosition = pos;
                 return;
             }
             else if(getHole(pos).getNumberOfSeed()>1)
                 walk(cp, pos);
-            else if(cp.equals(pos.getPlayer())){
+            else if(cp.equals(pos.getPlayer()) && hasCrossed){
                 //grab opponent seeds (across)
                 Hole h1 = getHoleAcross(pos);
                 if(h1!=null && h1.getNumberOfSeed()>0) {
-                    int opponentSeeds = h1.takeAllSeed();
+                    int opponentSeeds = 0;
+
+                    //only grab across hole if it's not kacang
+                    if(!h.isKacang())
+                        opponentSeeds = h1.takeAllSeed();
                     int mySeed = getHole(pos).takeAllSeed();
                     getMainHole(cp).addSeed(opponentSeeds+mySeed);
                 }
+
+                lastPosition = pos;
             }
+            hasCrossed = false;
 
             return;
         }
@@ -169,15 +201,17 @@ public class DefaultBoard implements Board {
         }
 
         StringBuffer buff = new StringBuffer();
+
+        buff.append("P2");
         for(int i=0;i<size;i++)
-            buff.append("\t"+i);
+            buff.append("\t").append(i);
         buff.append("\n");
         for(int i=0;i<size;i++)
             buff.append("\t ").append(getHole(players[1], i));
 
         buff.append("\n");
         buff.append(getHole(players[0], size));
-        for(int i=0;i<size;i++)
+        for(int i=0;i<=size;i++)
             buff.append("\t");
 
         buff.append(getHole(players[1], size));
@@ -186,10 +220,99 @@ public class DefaultBoard implements Board {
         for(int i=size-1;i>=0;i--)
             buff.append("\t ").append(getHole(players[0], i));
 
+        buff.append("\nP1");
+        for(int i=size-1;i>=0;i--)
+            buff.append("\t").append(i);
+
         return buff.toString();
     }
 
     public Hole getNextHole(Player p, Position pos){
         return getHole(getNextPosition(p, pos));
     }
+
+    public Position getLastPosition(){
+        return lastPosition;
+    }
+
+    @Override
+    public void wrapRound() {
+        Hole h1 = getHole(players[0], size);
+        Hole h2 = getHole(players[1], size);
+
+        int sum1 = 0, sum2 = 0;
+
+        for(int i=0;i<size;i++)
+            sum1+=getHole(players[0],i).takeAllSeed();
+        for(int i=0;i<size;i++)
+            sum2+=getHole(players[1],i).takeAllSeed();
+
+        h1.addSeed(sum1);
+        h2.addSeed(sum2);
+    }
+
+    @Override
+    public int getStoreSeedCount(Player p) {
+        return getHole(p, size).getNumberOfSeed();
+    }
+
+    @Override
+    public void startNextRound() {
+
+        int total1 = getMainHole(players[0]).takeAllSeed();
+        int total2 = getMainHole(players[1]).takeAllSeed();
+
+        //reset kacang
+        for(int i=size-1; i>=0; i--){
+            getHole(players[0], i).setKacang(false);
+            getHole(players[2], i).setKacang(false);
+        }
+
+        List<Hole> kacang1 = new ArrayList<>();
+        List<Hole> kacang2 = new ArrayList<>();
+
+        //init holes
+        for(int i=size-1; i>=0; i--){
+            Hole h1 = getHole(players[0], i);
+            if(total1>=seedPerHole) {
+                h1.addSeed(seedPerHole);
+                total1 -= seedPerHole;
+            }else if(kacang1.size()<3){
+                kacang1.add(h1);
+                h1.setKacang(true);
+            }else{
+                h1.setKacang(true);
+            }
+
+            Hole h2 = getHole(players[1], i);
+            if(total1>=seedPerHole) {
+                h2.addSeed(seedPerHole);
+                total2 -= seedPerHole;
+            }else if(kacang2.size()<3){
+                kacang2.add(h2);
+                h2.setKacang(true);
+            }else{
+                h2.setKacang(true);
+            }
+        }
+        if(kacang1.size()>0) {
+            while(total1>0){
+                for(Hole h: kacang1) {
+                    h.addSeed(1);
+                    total1--;
+                }
+            }
+        }
+        if(kacang2.size()>0) {
+            while(total2>0){
+                for(Hole h: kacang2) {
+                    h.addSeed(1);
+                    total1--;
+                }
+            }
+        }
+        getMainHole(players[0]).addSeed(total1);
+        getMainHole(players[0]).addSeed(total2);
+    }
+
 }
