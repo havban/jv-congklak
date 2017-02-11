@@ -108,48 +108,52 @@ public class Game implements Runnable{
                 if(!isRoundComplete)
                     doTurn(p2, p1);
             }
-
-            System.out.println("Round Complete!!!");
-            System.out.println(menangJalan + " wins 'Menang Jalan'");
-
-            //wrap round
-            board.wrapRound();
-            if(board.getStoreSeedCount(p1)>board.getStoreSeedCount(p2)){
-                menangBiji = p1;
-            }
-            else if(board.getStoreSeedCount(p1)>board.getStoreSeedCount(p2)){
-                menangBiji = p1;
-            }
-            else{
-                menangBiji = null;
-            }
-            if(menangBiji==null)
-                System.out.println("It's a draw 'Menang Biji'");
-            else
-                System.out.println(menangBiji+" wins 'Menang Biji'");
-
-            if(board.getStoreSeedCount(p1)==0 || board.getStoreSeedCount(p2)==0){
-                System.out.println("One of the player has no seed.. bye bye..");
-                System.exit(0);
-            }
-
-            String input = "";
-            do{
-                System.out.println("Do you want to go for another round (Y/N) ? ");
-                input = scanner.nextLine();
-
-                if(input.equalsIgnoreCase("N")){
-                    System.out.println("Thank you for playing");
-                }else if(!input.equalsIgnoreCase("Y")){
-                    System.out.println("Please input only Y or N");
-                    input = "";
-                }
-
-            }while(!input.equals(""));
-
-            System.out.println("Let's have another round");
-            board.startNextRound();
+            wrapRound();
         }
+    }
+
+    public void wrapRound() {
+
+        System.out.println("Round Complete!!!");
+        System.out.println(menangJalan + " wins 'Menang Jalan'");
+
+        //wrap round
+        board.wrapRound();
+        if(board.getStoreSeedCount(p1)>board.getStoreSeedCount(p2)){
+            menangBiji = p1;
+        }
+        else if(board.getStoreSeedCount(p1)>board.getStoreSeedCount(p2)){
+            menangBiji = p1;
+        }
+        else{
+            menangBiji = null;
+        }
+        if(menangBiji==null)
+            System.out.println("It's a draw 'Menang Biji'");
+        else
+            System.out.println(menangBiji+" wins 'Menang Biji'");
+
+        if(board.getStoreSeedCount(p1)==0 || board.getStoreSeedCount(p2)==0){
+            System.out.println("One of the player has no seed.. bye bye..");
+            System.exit(0);
+        }
+
+        String input = "";
+        do{
+            System.out.println("Do you want to go for another round (Y/N) ? ");
+            input = scanner.nextLine();
+
+            if(input.equalsIgnoreCase("N")){
+                System.out.println("Thank you for playing");
+            }else if(!input.equalsIgnoreCase("Y")){
+                System.out.println("Please input only Y or N");
+                input = "";
+            }
+
+        }while(!input.equals(""));
+
+        System.out.println("Let's have another round");
+        board.startNextRound();
     }
 
     public void exit(){
@@ -188,7 +192,7 @@ public class Game implements Runnable{
             System.out.println(board.toString());
     }
 
-    private boolean hasAvailableHole(Player p){
+    public boolean hasAvailableHole(Player p){
         for(int i=0; i<board.getSize(); i++){
             if(board.getHole(p, i).getNumberOfSeed()>0)
                 return true;
@@ -196,7 +200,7 @@ public class Game implements Runnable{
         return false;
     }
 
-    private void doTurn(Player cp, Player op){
+    public void doTurn(Player cp, Player op){
         int input;
         Position homeStorePos = new Position(cp, board.getSize());
         //Opponent "menang-jalan"

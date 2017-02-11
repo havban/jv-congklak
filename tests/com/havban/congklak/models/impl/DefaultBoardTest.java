@@ -221,6 +221,9 @@ public class DefaultBoardTest {
 
         DefaultBoard db = (DefaultBoard) b;
 
+        for(Hole h: b.getHoles().values()){
+            h.takeAllSeed();
+        }
         db.step(p1, new Position(p1, 2), 1);
         assert(b.getLastPosition().getSeq() == 2);
     }
