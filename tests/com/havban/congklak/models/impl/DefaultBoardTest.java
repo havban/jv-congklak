@@ -25,6 +25,19 @@ public class DefaultBoardTest {
     final static int PLAYER2_ID = 2;
     final static String PLAYER2_NAME = "NAME2";
 
+    final static String TO_STRING_0 = "P2\t0\t1\t2\t3\t4\t5\t6\n"+
+            "\t 0\t 0\t 0\t 0\t 0\t 0\t 0\n"+
+            "0\t\t\t\t\t\t\t\t0\n"+
+            "\t 0\t 0\t 0\t 0\t 0\t 0\t 0\n"+
+            "P1\t6\t5\t4\t3\t2\t1\t0";
+
+    final static String TO_STRING_SEED_PER_HOLE = "P2\t0\t1\t2\t3\t4\t5\t6\n"+
+            "\t 7\t 7\t 7\t 7\t 7\t 7\t 7\n"+
+            "0\t\t\t\t\t\t\t\t0\n"+
+            "\t 7\t 7\t 7\t 7\t 7\t 7\t 7\n"+
+            "P1\t6\t5\t4\t3\t2\t1\t0";
+
+
     Player p1;
     Player p2;
 
@@ -185,17 +198,31 @@ public class DefaultBoardTest {
 
     @Test
     public void toStringTest() throws Exception {
+        assert(b.toString().equals(TO_STRING_SEED_PER_HOLE));
 
+        for(Hole h: b.getHoles().values()){
+            h.takeAllSeed();
+        }
+        assert(b.toString().equals(TO_STRING_0));
     }
 
     @Test
     public void getNextHole() throws Exception {
+        assert(b.getNextHole(p1, new Position(p1, 0))
+                .equals(b.getHole(p1, 1)));
 
+        assert(b.getNextHole(p1, new Position(p2, BOARD_SIZE-1))
+                .equals(b.getHole(p1, 0)));
     }
 
     @Test
     public void getLastPosition() throws Exception {
+        assert(b.getLastPosition() == null);
 
+        DefaultBoard db = (DefaultBoard) b;
+
+        db.step(p1, new Position(p1, 2), 1);
+        assert(b.getLastPosition().getSeq() == 2);
     }
 
     @Test
@@ -205,7 +232,10 @@ public class DefaultBoardTest {
 
     @Test
     public void getStoreSeedCount() throws Exception {
+        assert(b.getStoreSeedCount(p1) == 0);
 
+        b.getHole(p1, BOARD_SIZE).addSeed(2);
+        assert(b.getStoreSeedCount(p1) == 2);
     }
 
     @Test
