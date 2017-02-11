@@ -170,9 +170,10 @@ public class DefaultBoard implements Board {
                 lastPosition = pos;
                 return;
             }
-            else if(getHole(pos).getNumberOfSeed()>1)
+            else if(getHole(pos).getNumberOfSeed()>1) {
                 walk(cp, pos);
-            else if(cp.equals(pos.getPlayer()) && hasCrossed){
+                return;
+            }else if(cp.equals(pos.getPlayer()) && hasCrossed){
                 //grab opponent seeds (across)
                 Hole h1 = getHoleAcross(pos);
                 if(h1!=null && h1.getNumberOfSeed()>0) {
@@ -184,9 +185,9 @@ public class DefaultBoard implements Board {
                     int mySeed = getHole(pos).takeAllSeed();
                     getMainHole(cp).addSeed(opponentSeeds+mySeed);
                 }
-
-                lastPosition = pos;
             }
+
+            lastPosition = pos;
             hasCrossed = false;
 
             return;

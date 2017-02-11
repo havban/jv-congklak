@@ -34,6 +34,9 @@ public class Game implements Runnable{
     private Player menangJalan = null;
     private Player menangBiji = null;
 
+    private int boardSize = 0;
+    private int seedPerHole = 0;
+
     public Game(int boardSize, int seedPerHole){
         init(boardSize, seedPerHole);
     }
@@ -73,7 +76,16 @@ public class Game implements Runnable{
 
     private void init(int boardSize, int seedPerHole){
 
+        this.boardSize = boardSize;
+        this.seedPerHole = seedPerHole;
+
         scanner = new Scanner(System.in);
+
+
+    }
+
+    public void run(){
+        printBoard();
 
         System.out.println(board);
 
@@ -89,11 +101,6 @@ public class Game implements Runnable{
         p2 = new DefaultPlayer(P2_SEQ, player2Name);
 
         board = new DefaultBoard(boardSize, seedPerHole, p1, p2);
-
-    }
-
-    public void run(){
-        printBoard();
 
         while(isRunning){
             while(!isRoundComplete) {
@@ -177,7 +184,8 @@ public class Game implements Runnable{
     }
 
     private void printBoard(){
-        System.out.println(board.toString());
+        if(board!=null)
+            System.out.println(board.toString());
     }
 
     private boolean hasAvailableHole(Player p){

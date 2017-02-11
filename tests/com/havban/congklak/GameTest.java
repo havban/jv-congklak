@@ -8,11 +8,14 @@ import static org.junit.Assert.*;
 public class GameTest {
 
     Game game = null;
+    Thread t;
 
     @org.junit.After
     public void after(){
         if(game != null)
             game.exit();
+        if(t!=null)
+            t.interrupt();
     }
 
     @org.junit.Test
@@ -20,13 +23,15 @@ public class GameTest {
 
         game = new Game();
 
-        new Thread(game).start();
+        t = new Thread(game);
+        t.start();
 
         Thread.sleep(1000);
 
         assert game.isRunning();
 
         game.exit();
+        t.interrupt();
 
         Thread.sleep(1000);
     }
