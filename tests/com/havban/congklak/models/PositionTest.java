@@ -60,6 +60,13 @@ public class PositionTest {
         Player p2 = new DefaultPlayer(PLAYER_ID, "");
         Position pos2 = new Position(p, POS_SEQ);
         assert pos.equals(pos2);
+
+        assert pos.equals(pos);
+        assert !pos.equals(null);
+        assert !pos.equals(p2);
+
+        Position pos3 = new Position(p, POS_SEQ+1);
+        assert !pos.equals(pos3);
     }
 
 }

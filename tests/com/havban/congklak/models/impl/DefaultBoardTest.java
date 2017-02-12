@@ -90,6 +90,10 @@ public class DefaultBoardTest {
 
         assert(main1.getNumberOfSeed()==0);
         assert(main2.getNumberOfSeed()==0);
+
+        assert(b.getMainHole(null) == null);
+        assert(b.getMainHole(0) == main1);
+        assert(b.getMainHole(6) == null);
     }
 
 
@@ -102,6 +106,10 @@ public class DefaultBoardTest {
         assert(h2.getNumberOfSeed() == SEED_PER_HOLE);
         Hole main = b.getHole(p1, BOARD_SIZE);
         assert(main.getNumberOfSeed() == 0);
+
+        assert b.getHole(null,1) == null;
+        assert b.getHole(null) == null;
+        assert b.getHole(new Position(p1, -1)) == null;
     }
 
     @Test
@@ -125,6 +133,17 @@ public class DefaultBoardTest {
     public void walk() throws Exception {
         b.walk(p1, new Position(p1, 0));
         assert(b.getLastPosition().equals(new Position(p1, BOARD_SIZE)));
+
+        b.walk(p1, new Position(p1, -1));
+
+        for(Hole h: b.getHoles().values()){
+            h.takeAllSeed();
+        }
+
+        b.getHole(p1, BOARD_SIZE-1).addSeed(2);
+
+        b.walk(p1, new Position(p1, BOARD_SIZE-1));
+        assert b.getLastPosition().equals(new Position(p2, 0));
     }
 
     @Test
@@ -154,6 +173,21 @@ public class DefaultBoardTest {
 
         assert(b.getNextPosition(p2, new Position(p2, BOARD_SIZE))
                 .equals(new Position(p1, 3)));
+
+        assert b.getNextPosition(null, null) == null;
+
+        assert b.getHoleAcross(null) == null;
+
+        assert b.getHoleAcross(new Position(p2, 1)) != null;
+
+        assert b.getHoleAcross(new Position(p1, b.getSize())) == null;
+
+        for(Hole h: b.getHoles().values()){
+            h.takeAllSeed();
+            h.setKacang(true);
+        }
+
+        assert b.getNextPosition(p2, new Position(p2,BOARD_SIZE)) == null;
 
     }
 
@@ -189,10 +223,18 @@ public class DefaultBoardTest {
             h.takeAllSeed();
         }
 
-//        db.getHole(p1, 3).addSeed(2);
-//        db.getHole(p1, 6).addSeed(2);
-//        db.step(p1, new Position(p1, 2), 2);
-//        assert(db.getLastPosition().getSeq() == 9 - BOARD_SIZE);
+        db.getHole(p1, 3).addSeed(2);
+        db.getHole(p1, 6).addSeed(2);
+        db.step(p1, new Position(p1, 2), 2);
+        assert(db.getLastPosition().getSeq() == 9 - BOARD_SIZE - 1);
+
+        for(Hole h: db.getHoles().values()){
+            h.takeAllSeed();
+        }
+
+        db.getHole(p2, 1).addSeed(9);
+        db.step(p1, new Position(p1, BOARD_SIZE), 3);
+        assert(db.getLastPosition().getSeq() == 4);
 
     }
 
@@ -204,6 +246,9 @@ public class DefaultBoardTest {
             h.takeAllSeed();
         }
         assert(b.toString().equals(TO_STRING_0));
+
+        Board b2 = new DefaultBoard(0, 0, p1, p2);
+        assert b2.toString().equals("");
     }
 
     @Test
@@ -230,7 +275,10 @@ public class DefaultBoardTest {
 
     @Test
     public void wrapRound() throws Exception {
-
+        b.wrapRound();
+        int eachPlayerSeedsCount = SEED_PER_HOLE * BOARD_SIZE;
+        assert(b.getStoreSeedCount(p1) == eachPlayerSeedsCount);
+        assert(b.getStoreSeedCount(p2) == eachPlayerSeedsCount);
     }
 
     @Test
@@ -243,6 +291,102 @@ public class DefaultBoardTest {
 
     @Test
     public void startNextRound() throws Exception {
+        b.startNextRound();
+
+        int eachPlayerSeedsCount = SEED_PER_HOLE * BOARD_SIZE;
+
+        for(int i =0;i<BOARD_SIZE;i++){
+            assert(b.getHole(p1, i).getNumberOfSeed() == SEED_PER_HOLE);
+            assert(b.getHole(p2, i).getNumberOfSeed() == SEED_PER_HOLE);
+        }
+
+        b.getMainHole(p1).addSeed(
+                b.getHoleAcross(new Position(p1, 0)).takeAllSeed());
+
+        b.wrapRound();
+        System.out.println(b.getMainHole(p1).getNumberOfSeed() == eachPlayerSeedsCount+SEED_PER_HOLE);
+        System.out.println(b.getMainHole(p2).getNumberOfSeed() == eachPlayerSeedsCount-SEED_PER_HOLE);
+
+        b.startNextRound();
+        System.out.println(b);
+
+        for(int i =1;i<BOARD_SIZE-1;i++){
+            assert(b.getHole(p1, i).getNumberOfSeed() == SEED_PER_HOLE);
+            assert(b.getHole(p2, i).getNumberOfSeed() == SEED_PER_HOLE);
+        }
+
+        assert(b.getMainHole(p1).getNumberOfSeed() == SEED_PER_HOLE);
+
+        Hole acrossHole = b.getHoleAcross(new Position(p1, BOARD_SIZE-1));
+        assert(acrossHole.getNumberOfSeed() == 0);
+        assert(acrossHole.isKacang());
+
+
+        //p1
+        for(Hole h: b.getHoles().values()){
+            h.takeAllSeed();
+        }
+
+        b.getMainHole(p1).addSeed(eachPlayerSeedsCount+(2*SEED_PER_HOLE)-1);
+        b.getMainHole(p2).addSeed(eachPlayerSeedsCount-(2*SEED_PER_HOLE)+1);
+        b.startNextRound();
+        System.out.println(b);
+        assert(b.getHoleAcross(new Position(p1, BOARD_SIZE-1)).getNumberOfSeed() == 0);
+        assert(b.getHoleAcross(new Position(p1, BOARD_SIZE-2)).getNumberOfSeed() == 1);
+        assert(b.getHoleAcross(new Position(p1, BOARD_SIZE-2)).isKacang());
+
+        for(Hole h: b.getHoles().values()){
+            h.takeAllSeed();
+        }
+
+        b.getMainHole(p1).addSeed(eachPlayerSeedsCount+(4*SEED_PER_HOLE));
+        b.getMainHole(p2).addSeed(eachPlayerSeedsCount-(4*SEED_PER_HOLE));
+        b.startNextRound();
+        System.out.println(b);
+        assert(b.getHoleAcross(new Position(p1, BOARD_SIZE-1)).getNumberOfSeed() == 0);
+        assert(b.getHoleAcross(new Position(p1, BOARD_SIZE-2)).getNumberOfSeed() == 0);
+        assert(b.getHoleAcross(new Position(p1, BOARD_SIZE-3)).getNumberOfSeed() == 0);
+        assert(b.getHoleAcross(new Position(p1, BOARD_SIZE-4)).getNumberOfSeed() == 0);
+
+        assert(b.getHoleAcross(new Position(p1, BOARD_SIZE-1)).isKacang());
+        assert(b.getHoleAcross(new Position(p1, BOARD_SIZE-2)).isKacang());
+        assert(b.getHoleAcross(new Position(p1, BOARD_SIZE-3)).isKacang());
+        assert(b.getHoleAcross(new Position(p1, BOARD_SIZE-4)).isKacang());
+
+        //p2
+        for(Hole h: b.getHoles().values()){
+            h.takeAllSeed();
+        }
+
+        b.getMainHole(p2).addSeed(eachPlayerSeedsCount+(2*SEED_PER_HOLE)-1);
+        b.getMainHole(p1).addSeed(eachPlayerSeedsCount-(2*SEED_PER_HOLE)+1);
+        b.startNextRound();
+        System.out.println(b);
+        assert(b.getHoleAcross(new Position(p2, BOARD_SIZE-1)).getNumberOfSeed() == 0);
+        assert(b.getHoleAcross(new Position(p2, BOARD_SIZE-2)).getNumberOfSeed() == 1);
+        assert(b.getHoleAcross(new Position(p2, BOARD_SIZE-2)).isKacang());
+
+        for(Hole h: b.getHoles().values()){
+            h.takeAllSeed();
+        }
+
+        for(Hole h: b.getHoles().values()){
+            h.takeAllSeed();
+        }
+
+        b.getMainHole(p2).addSeed(eachPlayerSeedsCount+(4*SEED_PER_HOLE));
+        b.getMainHole(p1).addSeed(eachPlayerSeedsCount-(4*SEED_PER_HOLE));
+        b.startNextRound();
+        System.out.println(b);
+        assert(b.getHoleAcross(new Position(p2, BOARD_SIZE-1)).getNumberOfSeed() == 0);
+        assert(b.getHoleAcross(new Position(p2, BOARD_SIZE-2)).getNumberOfSeed() == 0);
+        assert(b.getHoleAcross(new Position(p2, BOARD_SIZE-3)).getNumberOfSeed() == 0);
+        assert(b.getHoleAcross(new Position(p2, BOARD_SIZE-4)).getNumberOfSeed() == 0);
+
+        assert(b.getHoleAcross(new Position(p2, BOARD_SIZE-1)).isKacang());
+        assert(b.getHoleAcross(new Position(p2, BOARD_SIZE-2)).isKacang());
+        assert(b.getHoleAcross(new Position(p2, BOARD_SIZE-3)).isKacang());
+        assert(b.getHoleAcross(new Position(p2, BOARD_SIZE-4)).isKacang());
 
     }
 

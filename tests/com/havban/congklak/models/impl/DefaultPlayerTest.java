@@ -42,6 +42,9 @@ public class DefaultPlayerTest {
     public void equals() throws Exception {
         Player p2 = new DefaultPlayer(PLAYER_ID, PLAYER_NAME);
         assert(p.equals(p2));
+
+        assert !p.equals(null);
+        assert !p.equals(new Object());
     }
 
 }
