@@ -97,6 +97,11 @@ public class Game implements Runnable{
         System.out.println("Please input Player 2's name: ");
         String player2Name = scanner.nextLine();
 
+        startPlay(player1Name, player2Name);
+    }
+
+    private void startPlay(String player1Name, String player2Name) {
+
         p1 = new DefaultPlayer(P1_SEQ, player1Name);
         p2 = new DefaultPlayer(P2_SEQ, player2Name);
 

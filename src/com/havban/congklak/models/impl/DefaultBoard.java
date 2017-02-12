@@ -115,6 +115,9 @@ public class DefaultBoard implements Board {
         if(cp.equals(p.getPlayer())
             &&h.getNumberOfSeed() > size-p.getSeq())
             hasCrossed = true;
+        else if(!cp.equals(p.getPlayer()))
+            hasCrossed = true;
+
 
         int seeds = h.takeAllSeed();
         step(cp, getNextPosition(cp, p), seeds);
