@@ -48,10 +48,7 @@ public class Position {
         if (getClass() != o.getClass())
             return false;
         Position p = (Position) o;
-        if (key == null) {
-            if (p.key != null)
-                return false;
-        } else if (!key.equals(p.key))
+        if (!key.equals(p.key))
             return false;
         return true;
     }

@@ -92,7 +92,7 @@ public class DefaultBoard implements Board {
         if(pos==null)
             return null;
 
-        if(pos.getSeq() == size)
+        if(pos.getSeq() >= size || pos.getSeq() < 0)
             return null;
 
         Player p = pos.getPlayer();
@@ -109,10 +109,11 @@ public class DefaultBoard implements Board {
         Hole h = getHole(p);
 
         if(h==null || h.getNumberOfSeed()<1
-                || start > size-1)
+                || start > size)
             return;
 
-        if(!cp.equals(p.getPlayer()))
+        if(cp.equals(p.getPlayer())
+            &&h.getNumberOfSeed() > size-p.getSeq())
             hasCrossed = true;
 
         int seeds = h.takeAllSeed();
@@ -147,7 +148,7 @@ public class DefaultBoard implements Board {
         if(!p.equals(cp) && getHole(p, nextSeq).isKacang()) {
             if (nextSeq == size - 1) {
                 System.out.println("All holes are 'Kacang'.. exiting");
-                System.exit(0);
+                return null;
             }
             return getNextPosition(cp, nextPos);
         }
@@ -197,7 +198,7 @@ public class DefaultBoard implements Board {
     }
 
     public String toString(){
-        if(size == 0 && holes.size()<(size*2)+2){
+        if(size == 0 || holes.size()<(size*2)+2){
             return "";
         }
 
@@ -259,6 +260,7 @@ public class DefaultBoard implements Board {
 
     @Override
     public void startNextRound() {
+        wrapRound();
 
         int total1 = getMainHole(players[0]).takeAllSeed();
         int total2 = getMainHole(players[1]).takeAllSeed();
@@ -266,7 +268,7 @@ public class DefaultBoard implements Board {
         //reset kacang
         for(int i=size-1; i>=0; i--){
             getHole(players[0], i).setKacang(false);
-            getHole(players[2], i).setKacang(false);
+            getHole(players[1], i).setKacang(false);
         }
 
         List<Hole> kacang1 = new ArrayList<>();
@@ -286,7 +288,7 @@ public class DefaultBoard implements Board {
             }
 
             Hole h2 = getHole(players[1], i);
-            if(total1>=seedPerHole) {
+            if(total2>=seedPerHole) {
                 h2.addSeed(seedPerHole);
                 total2 -= seedPerHole;
             }else if(kacang2.size()<3){
@@ -299,6 +301,8 @@ public class DefaultBoard implements Board {
         if(kacang1.size()>0) {
             while(total1>0){
                 for(Hole h: kacang1) {
+                    if(total1==0)
+                        break;
                     h.addSeed(1);
                     total1--;
                 }
@@ -307,13 +311,15 @@ public class DefaultBoard implements Board {
         if(kacang2.size()>0) {
             while(total2>0){
                 for(Hole h: kacang2) {
+                    if(total2==0)
+                        break;
                     h.addSeed(1);
-                    total1--;
+                    total2--;
                 }
             }
         }
         getMainHole(players[0]).addSeed(total1);
-        getMainHole(players[0]).addSeed(total2);
+        getMainHole(players[1]).addSeed(total2);
     }
 
 }
