@@ -28,7 +28,7 @@ public class Game implements Runnable{
 
     private static final int P1_SEQ = 1;
     private static final int P2_SEQ = 2;
-    private Player p1, p2;
+    private Player p1, p2, firstPlay, secondPlay;
 
     private boolean isRoundComplete = false;
     private Player menangJalan = null;
@@ -105,13 +105,16 @@ public class Game implements Runnable{
         p1 = new DefaultPlayer(P1_SEQ, player1Name);
         p2 = new DefaultPlayer(P2_SEQ, player2Name);
 
+        firstPlay = p1;
+        secondPlay = p2;
+
         board = new DefaultBoard(boardSize, seedPerHole, p1, p2);
 
         while(isRunning){
             while(!isRoundComplete) {
-                doTurn(p1, p2);
+                doTurn(firstPlay, secondPlay);
                 if(!isRoundComplete)
-                    doTurn(p2, p1);
+                    doTurn(secondPlay, firstPlay);
             }
             wrapRound();
         }
@@ -122,13 +125,21 @@ public class Game implements Runnable{
         System.out.println("Round Complete!!!");
         System.out.println(menangJalan + " wins 'Menang Jalan'");
 
+        if (menangJalan.equals(p2)){
+            firstPlay = p2;
+            secondPlay = p1;
+        } else {
+            firstPlay = p1;
+            secondPlay = p2;
+        }
+
         //wrap round
         board.wrapRound();
         if(board.getStoreSeedCount(p1)>board.getStoreSeedCount(p2)){
             menangBiji = p1;
         }
-        else if(board.getStoreSeedCount(p1)>board.getStoreSeedCount(p2)){
-            menangBiji = p1;
+        else if(board.getStoreSeedCount(p1)<board.getStoreSeedCount(p2)){
+            menangBiji = p2;
         }
         else{
             menangBiji = null;
